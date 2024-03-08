@@ -1,0 +1,135 @@
+{
+    "RelacionSoportes": [
+        {
+            "soporte": "CRC",
+            "soportes_relacionados": [
+                "Consentimientos Informados"
+            ]
+        },
+        {
+            "soporte": "DQX",
+            "soportes_relacionados": [
+                "Informe de reparo de aneurisma - Cx cardiovascular",
+                "Panangiografia cerebral",
+                "Descripción Procedimiento Quirúrgicos",
+                "Control Prequirúrgico PAUSA",
+                "Control Prequirúrgico SALIDA",
+                "Control Prequirúrgico ENTRADA",
+                "Nota de Instrumentación"
+            ]
+        },
+        {
+            "soporte": "EPI",
+            "soportes_relacionados": [
+                "Epicrisis",
+                "Instrucciones de Egreso",
+                "Planes de Alta"
+            ]
+        },
+        {
+            "soporte": "FMO",
+            "soportes_relacionados": [
+                "FACTURA DE COMPRA-SOPORTES CIRUGIA"
+            ]
+        },
+        {
+            "soporte": "HAM",
+            "soportes_relacionados": [
+                "Apache II",
+                "Braden",
+                "GlasGow",
+                "Morse",
+                "Riesgo de caidas",
+                "TISS-28",
+                "Test de Aldrete",
+                "Registro de Signos Vitales",
+                "Administración de Medicamentos con Datamatrix",
+                "Control de Venopunciones",
+                "Nota de Enfermería",
+                "Nota de Enfermería UCI",
+                "Nota de Registro de Insumos",
+                "Solicitudes a Farmacia",
+                "Control de Oxígeno",
+                "Sesión Hemodiálisis",
+                "Ingreso y Salida Paciente Salas de Cirugia",
+                "Nota Administración de Medicamentos",
+                "Nota Médica Uci Intensivo",
+                "Curaciones de Alta Complejidad",
+                "Nota Egreso Enfermería"
+            ]
+        },
+        {
+            "soporte": "HAU",
+            "soportes_relacionados": [
+                "Consulta Inicial de Urgencias",
+                "Evolución Urgencias",
+                "TRIAGE:",
+                "Reanimación"
+            ]
+        },
+        {
+            "soporte": "HEV",
+            "soportes_relacionados": [
+                "Evolución Medicina General",
+                "Hoja Ingreso Hospitalización",
+                "Evolución Uci Intensivo",
+                "Hoja Ingreso Uci Intensivo",
+                "Evolución Uci Intermedio",
+                "Hoja Ingreso Uci Intermedio",
+                "Evolución Medicina Especializada",
+                "Evolución de Terapia Física",
+                "Evolución de Terapia Respiratoria",
+                "Nota Terapia Respiratoria",
+                "Interconsulta",
+                "Referencia y Contrareferencia",
+                "Cateterismo cardíaco izq. + coronariografía",
+                "Evolución de Nutrición",
+                "Hoja Ingreso Cirugía",
+                "Nota Médica",
+                "Consulta Medicina Especializada"
+            ]
+        },
+        {
+            "soporte": "OPF",
+            "soportes_relacionados": [
+                "Orden Médica de Egreso",
+                "Orden Médica Hospitalaria",
+                "Orden Médica Ambulatoria"
+            ]
+        },
+        {
+            "soporte": "PDE",
+            "soportes_relacionados": [
+                "Cargue de Archivos",
+                "Notas Administrativas",
+                "Reporte Auditoria Concurrente",
+                "Incapacidad",
+                "Cargue de Archivos",
+                "Cargue de Archivos",
+                "Cargue de Archivos"
+            ]
+        },
+        {
+            "soporte": "PDX",
+            "soportes_relacionados": [
+                "Gases Arteriovenosos",
+                "Control de Líquidos",
+                "Registro de Glucometria",
+                "Electrocardiograma",
+                "Interfaz de laboratorio clínico",
+                "Reporte de Imagenología Hospitalario",
+                "Resultado de Laboratorio",
+                "Cargue de Archivos",
+                "Ecocardiograma M. Bidimensional Doopler Color",
+                "Reporte de Imagenología Ambulatorio",
+                "Cargue de Archivos"
+            ]
+        },
+        {
+            "soporte": "RAN",
+            "soportes_relacionados": [
+                "Registro de Anestesia"
+            ]
+        }
+    ]
+}

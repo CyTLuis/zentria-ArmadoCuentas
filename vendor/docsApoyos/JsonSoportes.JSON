@@ -1,0 +1,14 @@
+{ 
+  "urgencias": {
+    "requeridos":[],
+    "opcionales":[]
+  },
+  "hospitalizacion": {
+    "requeridos":[],
+    "opcionales":[]
+  },
+  "consultaExterna": {
+    "requeridos":[],
+    "opcionales":[]
+  }
+}
