@@ -1,5 +1,6 @@
 {
     "renombreZentriaNEPS": {
-        "renombreSoporte": "$soporte_$nit_A$factura.pdf"
+        "renombreSoporte": "$soporte_$nit_$factura.pdf",
+        "renombreFactura": "$soporte_$nit_$factura.pdf"
     }
 }

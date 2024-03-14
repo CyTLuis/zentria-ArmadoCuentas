@@ -132,6 +132,6 @@ class Armado:
                     neps.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
                     neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
                     neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
-                    peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
+                    # peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
 
         
