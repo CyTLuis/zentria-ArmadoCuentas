@@ -130,8 +130,10 @@ class Armado:
                 for cuenta in self.__cuentasArmar:
                     rutaSoportesFactura = path.join(self.rutaSopsDescargados, cuenta["numero_factura"])
                     neps.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
+                    neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
                     neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
                     neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
-                    # peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
+                    peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
+                neps.controlFinal()
 
         

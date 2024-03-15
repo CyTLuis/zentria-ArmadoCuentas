@@ -1,11 +1,13 @@
 import requests as rq
 from json import loads
 from controller.Log import Log
+from controller.Impresor import Impresor
 from controller.utils.Helpers import Helpers
 from controller.utils.Configurations import Configurations
 
 logger = Log()
 helper = Helpers()
+consola = Impresor()
 config = Configurations()
 
 class Peticiones:
@@ -35,220 +37,18 @@ class Peticiones:
         Este metodo hará una petición a la API para obtener el
         listado de facturas que se pueden armar su cuenta.
         """
-        x = [
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-484058",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485138",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485168",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485191",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485198",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485203",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485214",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485221",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485227",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485235",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485238",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485255",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485340",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485370",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485396",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485404",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485408",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485413",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485430",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485445",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485458",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485468",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485473",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485494",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485503",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485533",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 14,
-                    "numero_factura": "CASM-485534",
-                    "no_atencion": "879528",
-                    "fecha_ingreso": "2023-05-27",
-                    "ambito": "Apoyo Diagnostico",
-                },
-                {
-                    "id_pdf": 12,
-                    "numero_factura": "CASM-485538",
-                    "no_atencion": "1005805",
-                    "fecha_ingreso": "2023-09-27",
-                    "ambito": "Urgencias",
-                },
-                {
-                    "id_pdf": 13,
-                    "numero_factura": "CASM-485540",
-                    "no_atencion": "878308",
-                    "fecha_ingreso": "2023-05-26",
-                    "ambito": "Apoyo Diagnostico",
-                }
-            ]
-        return x
-
+       
         respuesta = []
         try:
-            res = rq.get(f"{self.__urlAPI}/{self.__dictEndpoints["obtencionFacturas"]}")
+            consola.imprimirProceso("Inicio de proceso para Obtener Listado de Facturas")
+            res = rq.get(f"{self.__urlAPI}/{self.__dictEndpoints["obtencionFacturas"]}", timeout = 30)
             respuesta = loads(res.text)
+            consola.imprimirProceso(f"Fin del proceso para Obtener Listado de Facturas [({len(respuesta)})]")
         except Exception as e:
+            consola.imprimirError(f"Error en el proceso para Obtener Listado de Facturas [{e}]")
             logger.registrarLogEror(f"Error al generar la petición de facturas para armado de cuentas, error: {e}", "obtenerListadoFacturas")
         finally:
+            print(respuesta)
             return respuesta
     
     def actualizarEstadoCuenta(self, idFactura: int, estado: str):
@@ -267,10 +67,18 @@ class Peticiones:
             }
             actualizacion = rq.post(
                 f"{self.__urlAPI}/{self.__dictEndpoints["actualizacionEstado"]}",
-                json = data
+                json = data,
+                timeout = 10
             )
             print(actualizacion.text)
         except Exception as e:
             logger.registrarLogEror(f"No se ha podido actualizar los datos de la cuenta con id: {idFactura}, error: {e}", "actualizarEstadoCuenta")
         finally:
             return exito
+    
+    def crearAlertaSoporteFaltante(self, soporte: str, cuenta: str):
+        """
+        Se consumirá en la API un endpoint para generar
+        una alerta sobre el soporte faltante de la cuenta
+        que se esta recorriendo en el armado.
+        """
