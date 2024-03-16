@@ -2,8 +2,9 @@
 # Importaciones de clases y librerias necesarias en este archivo main
 # ===========================================================================
 # Region -  Importaciones de archivos o librerias
-from json import load
 from os import  path
+from json import load
+from datetime import datetime
 
 from controller.Log import Log
 from content.NuevaEPS import NuevaEPS
@@ -58,6 +59,11 @@ class Armado:
         self.rutaNomenclaJSON = config.getConfigValue("routes", "UbicacionJSONnomenclatura")
         self.rutaSopsDescargados = config.getConfigValue("variables", "pathSoportesDescargados")
         self.rutaFacturasDescarg = config.getConfigValue("variables", "pathCarpetaFacturas")
+
+        self.__entornoDesarrollo = config.getConfigValue("enviroment", "entornoProceso")
+        if(self.__entornoDesarrollo != "dev"):
+            self.__fechaEjecucion = datetime.today().strftime('%d-%m-%Y')
+            self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}")
 
         # Variables para almacenar el contenido de los JSON
         self.dataSoportesJSON = ""
@@ -133,6 +139,7 @@ class Armado:
                     neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
                     neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
                     neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
+                    neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"])
                     peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
                 neps.controlFinal()
 

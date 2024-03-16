@@ -37,7 +37,6 @@ class Peticiones:
         Este metodo hará una petición a la API para obtener el
         listado de facturas que se pueden armar su cuenta.
         """
-       
         respuesta = []
         try:
             consola.imprimirProceso("Inicio de proceso para Obtener Listado de Facturas")
