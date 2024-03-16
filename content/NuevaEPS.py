@@ -54,6 +54,7 @@ class NuevaEPS:
             "PDX": [],
             "HAM": [],
             "HAU": [],
+            "OPF": [],
             "TRIAGE": []
         }
     
@@ -130,6 +131,8 @@ class NuevaEPS:
                 self.soportes["HAM"].append(path.join(rutaCarpPacArmado, soporte))
             elif "HAU" in soporte:
                 self.soportes["HAU"].append(path.join(rutaCarpPacArmado, soporte))
+            elif "OPF" in soporte:
+                self.soportes["OPF"].append(path.join(rutaCarpPacArmado, soporte))
             elif "TRIAGE" in soporte:
                 self.soportes["TRIAGE"].append(path.join(rutaCarpPacArmado, soporte))
         elif momento == 2:
@@ -148,6 +151,13 @@ class NuevaEPS:
                     rename(path.join(rutaCarpPacArmado, "HAM.pdf"), path.join(rutaCarpPacArmado, nombreHAM))
             except Exception as e:
                 self._manejarError(e, cuenta, "HAM")
+            try:
+                if len(self.soportes["OPF"]) > 0:
+                    self.unirArchivos(self.soportes["OPF"].reverse(), rutaCarpPacArmado, "OPF")
+                    nombreOPF = strNombreSoporte.replace("$soporte", "OPF").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
+                    rename(path.join(rutaCarpPacArmado, "OPF.pdf"), path.join(rutaCarpPacArmado, nombreOPF))
+            except Exception as e:
+                self._manejarError(e, cuenta, "OPF")
             try:
                 if len(self.soportes["HAU"]) > 0:
                     if len(self.soportes["TRIAGE"]) > 0:
@@ -176,7 +186,7 @@ class NuevaEPS:
                 consola.imprimirProceso(f"Se empezará el proceso de renombrado de la cuenta: {cuenta}.")
                 for soporte in listdir(rutaCarpetaPacienteArmado):
                     try: # Primero se valida los soportes de tratado especial.
-                        if any(subcadena in soporte for subcadena in ["PDX", "PDX50", "HAM", "HAU", "TRIAGE"]):
+                        if any(subcadena in soporte for subcadena in ["PDX", "PDX50", "HAM", "HAU", "TRIAGE", "OPF"]):
                             self.validarSoportesTratadoDiferente(soporte, rutaCarpetaPacienteArmado, cuenta, 1)
                         else:
                             soporteRecorrido = path.splitext(soporte)
