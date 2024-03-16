@@ -61,9 +61,9 @@ class Armado:
         self.rutaFacturasDescarg = config.getConfigValue("variables", "pathCarpetaFacturas")
 
         self.__entornoDesarrollo = config.getConfigValue("enviroment", "entornoProceso")
-        if(self.__entornoDesarrollo != "dev"):
-            self.__fechaEjecucion = datetime.today().strftime('%d-%m-%Y')
-            self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}")
+        # if(self.__entornoDesarrollo != "dev"):
+        #     self.__fechaEjecucion = datetime.today().strftime('%d-%m-%Y')
+        #     self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}")
 
         # Variables para almacenar el contenido de los JSON
         self.dataSoportesJSON = ""
