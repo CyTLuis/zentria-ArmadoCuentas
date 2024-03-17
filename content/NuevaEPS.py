@@ -55,6 +55,7 @@ class NuevaEPS:
             "HAM": [],
             "HAU": [],
             "OPF": [],
+            "HUV": [],
             "TRIAGE": []
         }
     
@@ -133,6 +134,8 @@ class NuevaEPS:
                 self.soportes["HAU"].append(path.join(rutaCarpPacArmado, soporte))
             elif "OPF" in soporte:
                 self.soportes["OPF"].append(path.join(rutaCarpPacArmado, soporte))
+            elif "HUV" in soporte:
+                self.soportes["HUV"].append(path.join(rutaCarpPacArmado, soporte))
             elif "TRIAGE" in soporte:
                 self.soportes["TRIAGE"].append(path.join(rutaCarpPacArmado, soporte))
         elif momento == 2:
@@ -153,11 +156,18 @@ class NuevaEPS:
                 self._manejarError(e, cuenta, "HAM")
             try:
                 if len(self.soportes["OPF"]) > 0:
-                    self.unirArchivos(self.soportes["OPF"].reverse(), rutaCarpPacArmado, "OPF")
+                    self.unirArchivos(reversed(self.soportes["OPF"]), rutaCarpPacArmado, "OPF")
                     nombreOPF = strNombreSoporte.replace("$soporte", "OPF").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
                     rename(path.join(rutaCarpPacArmado, "OPF.pdf"), path.join(rutaCarpPacArmado, nombreOPF))
             except Exception as e:
                 self._manejarError(e, cuenta, "OPF")
+            try:
+                if len(self.soportes["HUV"]) > 0:
+                    self.unirArchivos(self.soportes["HUV"], rutaCarpPacArmado, "HUV")
+                    nombreHUV = strNombreSoporte.replace("$soporte", "HUV").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
+                    rename(path.join(rutaCarpPacArmado, "HUV.pdf"), path.join(rutaCarpPacArmado, nombreHUV))
+            except Exception as e:
+                self._manejarError(e, cuenta, "HUV")
             try:
                 if len(self.soportes["HAU"]) > 0:
                     if len(self.soportes["TRIAGE"]) > 0:
@@ -177,7 +187,7 @@ class NuevaEPS:
             - `eps:` (str) Abreviatura de la EPS que se esta procesando.
             - `cuenta:` (str) Cuenta o factura que se esta iterando y se hará renombre de archivos.
         """
-        self.soportes["PDX"].clear(), self.soportes["HAM"].clear(), self.soportes["HAU"].clear(), self.soportes["TRIAGE"].clear()
+        self.soportes["PDX"].clear(), self.soportes["HAM"].clear(), self.soportes["HAU"].clear(), self.soportes["OPF"].clear(), self.soportes["HUV"].clear(), self.soportes["TRIAGE"].clear()
         rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
         cuenta = cuenta.replace("CASM-", "CASM")
         strNomenSoporte = self.dataNomenclatura["renombreSoporte"]
@@ -186,7 +196,7 @@ class NuevaEPS:
                 consola.imprimirProceso(f"Se empezará el proceso de renombrado de la cuenta: {cuenta}.")
                 for soporte in listdir(rutaCarpetaPacienteArmado):
                     try: # Primero se valida los soportes de tratado especial.
-                        if any(subcadena in soporte for subcadena in ["PDX", "PDX50", "HAM", "HAU", "TRIAGE", "OPF"]):
+                        if any(subcadena in soporte for subcadena in ["PDX", "PDX50", "HAM", "HAU", "TRIAGE", "OPF", "HUV"]):
                             self.validarSoportesTratadoDiferente(soporte, rutaCarpetaPacienteArmado, cuenta, 1)
                         else:
                             soporteRecorrido = path.splitext(soporte)

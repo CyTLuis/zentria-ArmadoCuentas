@@ -2,8 +2,9 @@
 # Importaciones de clases y librerias necesarias en este archivo main
 # ===========================================================================
 # Region -  Importaciones de archivos o librerias
-from os import  path
 from json import load
+from json import dumps
+from os import  path, getcwd
 from datetime import datetime
 
 from controller.Log import Log
@@ -23,6 +24,8 @@ neps = NuevaEPS()
 peti = Peticiones()
 consola = Impresor()
 config= Configurations()
+
+directorioProyecto = getcwd()
 # Endregion - Instancia de clases de archivos importado
 
 class Armado:
@@ -57,6 +60,7 @@ class Armado:
         # Rutas de JSON o paths para hacer lecturas
         self.rutaSoportesJSON = config.getConfigValue("routes", "UbicacionJSONsoportes")
         self.rutaNomenclaJSON = config.getConfigValue("routes", "UbicacionJSONnomenclatura")
+        self.rutaAntiguaPeticionJSON = config.getConfigValue("routes", "UbicacionJSONDatosAnteriores")
         self.rutaSopsDescargados = config.getConfigValue("variables", "pathSoportesDescargados")
         self.rutaFacturasDescarg = config.getConfigValue("variables", "pathCarpetaFacturas")
 
@@ -115,6 +119,21 @@ class Armado:
         finally:
             return existe
 
+    def escribirDatosAnterioresJSON(self, datos):
+        """
+        Para llevar un control de los datos, se escribirá en un
+        JSON los datos anteriores de la respuesta de la API
+        sobre las cuentas que se deben procesar. 
+        """
+        try:
+            if(path.isfile(path.join(directorioProyecto, self.rutaAntiguaPeticionJSON))):
+                datosSeteados = dumps(datos, indent = 4)
+                with open(path.join(directorioProyecto, self.rutaAntiguaPeticionJSON), "w") as archivoJSON:
+                    archivoJSON.write(datosSeteados)
+                    archivoJSON.close()
+        except Exception as e:
+            logger.registrarLogEror(f"No se ha podido escribir los datos del JSON para peticiones anteriores.", "escribirDatosAnterioresJSON")
+
     def orquestarArmado(self):
         """
         Este metodo orquesta el renombre,
@@ -142,5 +161,6 @@ class Armado:
                     neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"])
                     peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
                 neps.controlFinal()
+
 
         
