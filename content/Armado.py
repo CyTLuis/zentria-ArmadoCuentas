@@ -145,6 +145,7 @@ class Armado:
             datos = peti.obtenerListadoFacturas() # Se obtienen los datos de las cuentas a renombrar
             self.__cuentasArmar = datos # Listado con datos de cuentas armar.
             if(len(datos) > 0):
+                self.escribirDatosAnterioresJSON(datos)
                 cuentasNoArmables = [] # Listado de cuentas alerta
                 for factura in datos:
                     validacionExitencia = self.existeCarpeta(factura["numero_factura"]) # Validación si existe carpeta de cuenta
@@ -158,7 +159,8 @@ class Armado:
                     neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
                     neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
                     neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
-                    neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"])
+                    neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
+                    neps.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
                     peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
                 neps.controlFinal()
 

@@ -284,3 +284,26 @@ class NuevaEPS:
         logger.registrarComentario("Pacientes sin facturas", f"{self.__pacientesSinFacturas}")
         logger.registrarComentario("Pacientes sin soportes", f"{self.__pacientesSinSoportes}")
         logger.registrarComentario("Pacientes con errores", f"{self.__pacientesConErrores}")
+
+    def renombrarPDEconOTRO(self, eps: str, regimen: str, cuenta: str, archivoNombreInicial: str, nombreFinal: str):
+        """
+        ! Este metodo es TEMPORAL a fecha (18/03/2024) 
+        Valida si en la cuenta armada, existe el archivo llamado
+        con el archivoNombreInicial, y lo renombra por el nombreFinal.
+        `Args:`
+            `eps (str):` EPS que se esta armando.
+            `regimen (str):` Regimen de la cuenta que se esta armando
+            `cuenta (str):` Cuenta que se ha armado.
+            `archivoNombreInicial (str):` Nombre o contenido del nombre inicialmente.
+            `nombreFinal (str):` Nombre nuevo que se estaría por mostrar.
+        """
+        try:
+            rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, regimen, cuenta)
+            cuenta = cuenta.replace("CASM-", "CASM")
+            nombreArchivo = f"{archivoNombreInicial}_{self.__nitEntidad}_{cuenta}.pdf"
+            replaceArchivo = nombreArchivo.replace(archivoNombreInicial, nombreFinal)
+            nombreArchivoFinal = path.join(rutaCarpetaPacienteArmado, replaceArchivo)
+            if(path.isfile(path.join(rutaCarpetaPacienteArmado, nombreArchivo))):
+                rename(path.join(rutaCarpetaPacienteArmado, nombreArchivo), nombreArchivoFinal)
+        except Exception as e:
+            logger.registrarLogEror(f"Ocurrió un error tratando de renombrar el archivo: {archivoNombreInicial} de la cuenta: {cuenta}, error: {e}", "renombrarPDEconOTR8")
