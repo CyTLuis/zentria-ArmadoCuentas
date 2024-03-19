@@ -72,10 +72,11 @@ class NuevaEPS:
         try:
             rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta) # Se busca la cuenta en la carpeta de soportes descargados.
             if(path.isdir(ruta) == False or len(listdir(ruta)) == 0): # En caso de no existir o no tener soportes, se reportará
-                self.__pacientesSinSoportes(cuenta)
+                self.__pacientesSinSoportes(cuenta) # Si la cuenta no existe, se reporta en las cuentas sin soportes
+                consola.imprimirComentario("copiadoSop", f"La cuenta: {cuenta} no tiene datos, o directamente no existe.")
             else:
-                copytree(ruta, rutaCarpetaPacienteArmado, dirs_exist_ok = True) # Copia del archivo completo
-                consola.imprimirProceso(f"Se ha hecho el copiado del arbol para la cuenta: {cuenta}")
+                copytree(ruta, rutaCarpetaPacienteArmado, dirs_exist_ok = True) # Copia del arbol completo de la carpeta de soportes, a la de armado
+                consola.imprimirComentario("copiadoSop", f"Se ha hecho el copiado del arbol para la cuenta: {cuenta}, con {len(listdir(ruta))} datos de carpetas.")
         except Exception as e:
             consola.imprimirError(f"Error en la cuenta: {cuenta}, en el copiado del arbol, con error: {e}")
             logger.registrarLogEror(f"Error reportado en el armado de cuentas, y copia de archivos, error: {e}", "copiadoSoportes")
@@ -92,26 +93,27 @@ class NuevaEPS:
         """
         try:
             rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta) # Ruta en la carpeta de cuentas armadas, por paciente
-            # rutaCarpetaPacienteFactura = path.join(ruta, cuenta) # Ruta de la factura actual [Donde se descarga la factura]
             rutaFacturaPaciente = path.join(ruta, f"{cuenta}.pdf") # Ruta total donde se descargo la factura del paciente.
             if(path.isfile(rutaFacturaPaciente)): # Valida si existe la factura correctamente.
                 copy2(rutaFacturaPaciente, rutaCarpetaPacienteArmado) # Copia la factura de donde se descargo, a la ruta del armado.
+                consola.imprimirComentario("copiadoFactura", f"Se ha COPIADO correctamente la factura de la cuenta: {cuenta}")
                 rutaFacturaCopiada = path.join(rutaCarpetaPacienteArmado, f"{cuenta}.pdf") # Ruta de la factura copiada en la carpeta del armado.
                 cuenta = cuenta.replace("CASM-", "CASM") # Reemplazo para renombre de la factura
                 strNomenSoporte = self.dataNomenclatura["renombreFactura"] # Nomenclatura para renombre de factura.
                 strRenombreFactura = strNomenSoporte.replace("$soporte", "FVS").replace("$nit", self.__nitEntidad).replace("$factura", cuenta) # Formateo de str de nuevo nombre
+                consola.imprimirComentario("copiadoFactura", f"Se ha RENOMBRADO correctamente la factura de la cuenta: {cuenta}")
                 rename(rutaFacturaCopiada, path.join(rutaCarpetaPacienteArmado, strRenombreFactura))
             else:
                 consola.imprimirProceso(f"No existe factura para la cuenta: {cuenta}.")
                 self.__pacientesSinFacturas.append(cuenta)
         except Exception as e:
             self.__pacientesSinFacturas.append(cuenta)
-            consola.imprimirError(f"Fallo con factura de cuenta: {cuenta}, para copiar la factura, error: {e}")
-            logger.registrarLogEror(f"Error reportado en el armado de cuentas, y copia de archivos, error: {e}", "copiadoSoportes")
+            consola.imprimirError(f"Fallo con factura de cuenta: {cuenta}, para copiar o renombrar la factura, error: {e}")
+            logger.registrarLogEror(f"Fallo con factura de cuenta: {cuenta}, para copiar o renombrar la factura, error: {e}", "copiadoSoportes")
     
-    def _manejarError(self, error: Exception, cuenta: str, tipo_soporte: str):
-        consola.imprimirError(f"Error reportado desde la unión de los archivos {tipo_soporte} de la cuenta: {cuenta}, con error: {error}")
-        logger.registrarLogEror(f"Error haciendo el tratado de soporte de tipo [{tipo_soporte}] de la cuenta: {cuenta}, error: {error}", "renombrarArchivos")
+    def _manejarError(self, error: Exception, cuenta: str, tipoSoporte: str):
+        consola.imprimirError(f"Error reportado desde la unión de los archivos {tipoSoporte} de la cuenta: {cuenta}, con error: {error}")
+        logger.registrarLogEror(f"Error haciendo el tratado de soporte de tipo [{tipoSoporte}] de la cuenta: {cuenta}, error: {error}", "renombrarArchivos")
 
     def validarSoportesTratadoDiferente(self, soporte: str, rutaCarpPacArmado: str, cuenta: str, momento: int, strNombreSoporte: str = None):
         """
@@ -141,6 +143,7 @@ class NuevaEPS:
         elif momento == 2:
             try:
                 if len(self.soportes["PDX"]) > 0:
+                    consola.imprimirComentario("validarSoportesTratadoDiferente", f"PDX - Encontró ({len(self.soportes["PDX"])}) PDX, que procederá a unir en uno solo.")
                     self.unirArchivos(self.soportes["PDX"], rutaCarpPacArmado, "PDX")
                     strRenombreSoporte = strNombreSoporte.replace("$soporte", "PDX").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
                     nombrePDX = "PDX.pdf" if path.isfile(path.join(rutaCarpPacArmado, "PDX.pdf")) else "PDX50.pdf"
@@ -149,6 +152,7 @@ class NuevaEPS:
                 self._manejarError(e, cuenta, "PDX")
             try:
                 if len(self.soportes["HAM"]) > 0:
+                    consola.imprimirComentario("validarSoportesTratadoDiferente", f"HAM - Encontró ({len(self.soportes["HAM"])}) HAM, que procederá a unir en uno solo.")
                     self.unirArchivos(self.soportes["HAM"], rutaCarpPacArmado, "HAM")
                     nombreHAM = strNombreSoporte.replace("$soporte", "HAM").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
                     rename(path.join(rutaCarpPacArmado, "HAM.pdf"), path.join(rutaCarpPacArmado, nombreHAM))
@@ -156,6 +160,7 @@ class NuevaEPS:
                 self._manejarError(e, cuenta, "HAM")
             try:
                 if len(self.soportes["OPF"]) > 0:
+                    consola.imprimirComentario("validarSoportesTratadoDiferente", f"OPF - Encontró ({len(self.soportes["OPF"])}) OPF, que procederá a unir en uno solo.")
                     self.unirArchivos(reversed(self.soportes["OPF"]), rutaCarpPacArmado, "OPF")
                     nombreOPF = strNombreSoporte.replace("$soporte", "OPF").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
                     rename(path.join(rutaCarpPacArmado, "OPF.pdf"), path.join(rutaCarpPacArmado, nombreOPF))
@@ -163,6 +168,7 @@ class NuevaEPS:
                 self._manejarError(e, cuenta, "OPF")
             try:
                 if len(self.soportes["HUV"]) > 0:
+                    consola.imprimirComentario("validarSoportesTratadoDiferente", f"HUV - Encontró ({len(self.soportes["HUV"])}) HUV, que procederá a unir en uno solo.")
                     self.unirArchivos(self.soportes["HUV"], rutaCarpPacArmado, "HUV")
                     nombreHUV = strNombreSoporte.replace("$soporte", "HUV").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
                     rename(path.join(rutaCarpPacArmado, "HUV.pdf"), path.join(rutaCarpPacArmado, nombreHUV))
@@ -170,7 +176,9 @@ class NuevaEPS:
                 self._manejarError(e, cuenta, "HUV")
             try:
                 if len(self.soportes["HAU"]) > 0:
+                    consola.imprimirComentario("validarSoportesTratadoDiferente", f"HAU - Encontró ({len(self.soportes["HAU"])}) HAU, y buscará si existen TRIAGES.")
                     if len(self.soportes["TRIAGE"]) > 0:
+                        consola.imprimirComentario("validarSoportesTratadoDiferente", f"TRIAGE - Encontró ({len(self.soportes["TRIAGE"])}) TRIAGE, para unir con los HAU.")
                         self.soportes["HAU"].insert(0, self.soportes["TRIAGE"][0])
                     self.unirArchivos(self.soportes["HAU"], rutaCarpPacArmado, "HAU")
                     strRenombreSoporte = strNombreSoporte.replace("$soporte", "HAU").replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
@@ -193,7 +201,7 @@ class NuevaEPS:
         strNomenSoporte = self.dataNomenclatura["renombreSoporte"]
         try:
             if(len(listdir(rutaCarpetaPacienteArmado)) > 0): # Si hay archivos en la carpeta, se inicia proceso
-                consola.imprimirProceso(f"Se empezará el proceso de renombrado de la cuenta: {cuenta}.")
+                consola.imprimirComentario("renombrarArchivos", f"Inicio de renombrado para la cuenta: {cuenta}, que cuenta con ({len(listdir(rutaCarpetaPacienteArmado))}) archivos.")
                 for soporte in listdir(rutaCarpetaPacienteArmado):
                     try: # Primero se valida los soportes de tratado especial.
                         if any(subcadena in soporte for subcadena in ["PDX", "PDX50", "HAM", "HAU", "TRIAGE", "OPF", "HUV"]):
@@ -204,8 +212,10 @@ class NuevaEPS:
                             strRenombreSoporte = strNomenSoporte.replace("$soporte", nombreSoporte).replace("$nit", self.__nitEntidad).replace("$factura", cuenta)
                             if(path.isfile(path.join(rutaCarpetaPacienteArmado, soporte))):
                                 rename(path.join(rutaCarpetaPacienteArmado, soporte), path.join(rutaCarpetaPacienteArmado, strRenombreSoporte))
+                                consola.imprimirComentario("renombrarArchivos", f"Se ha hecho el renombrado correcto del archivo: {soporte}, ahora es: {strRenombreSoporte}.")
                                 if(path.isfile(path.join(rutaCarpetaPacienteArmado, soporte))):
                                     remove(path.join(rutaCarpetaPacienteArmado, soporte))
+                                    consola.imprimirComentario("renombrarArchivos", f"Se finaliza removiendo el soporte: {soporte} de la cuenta de la carpeta, SOLO EN CASO DE EXISTIR.")
                     except Exception as e:
                         logger.registrarLogEror(f"Error en el renombre del soporte: {soporte} de la cuenta: {cuenta}, error: {e}", "renombrarArchivos")
                 self.validarSoportesTratadoDiferente(soporte, rutaCarpetaPacienteArmado, cuenta, 2, strNomenSoporte)
@@ -221,32 +231,36 @@ class NuevaEPS:
         """
         rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
         rutaCarpetaPacienteCargue = path.join(rutaCarpetaPacienteArmado, "Cargue de Archivos")
+        consola.imprimirComentario("tratadoArchivosCargueSoportes", f"Se hará el tratado de archivos de Cargue de Archivos, de la cuenta: {cuenta}")
         if(path.isdir(rutaCarpetaPacienteCargue)):
             archivosCargados = listdir(rutaCarpetaPacienteCargue)
-            listadosPDE = []
+            listadoPDE = []
             listadoTAP = []
             listadoPDX = []
             for cargue in archivosCargados:
                 rutaSoporteCargue = path.join(rutaCarpetaPacienteCargue, cargue)
                 if any(subcadena in cargue for subcadena in ["AUTORIZAC", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
-                    listadosPDE.append(rutaSoporteCargue)
+                    listadoPDE.append(rutaSoporteCargue)
                 if any(subcadena in cargue for subcadena in ["TRASLADO"]):
                     listadoTAP.append(rutaSoporteCargue)
                 if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS"]):
                     listadoPDX.append(rutaSoporteCargue)
                 
-            if(len(listadosPDE) > 0):
-                self.unirArchivos(listadosPDE, rutaCarpetaPacienteCargue, "PDE")
+            if(len(listadoPDE) > 0):
+                consola.imprimirComentario("tratadoArchivosCargueSoportes", f"PDE - Se encontraron ({len(listadoPDE)}) archivos de PDE, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
+                self.unirArchivos(listadoPDE, rutaCarpetaPacienteCargue, "PDE")
                 if(path.isfile(path.join(rutaCarpetaPacienteArmado, "PDE.pdf"))):
                     listaMultiplesPDE = [path.join(rutaCarpetaPacienteCargue, "PDE.pdf"), path.join(rutaCarpetaPacienteArmado, "PDE.pdf")]
                     self.unirArchivos(listaMultiplesPDE, rutaCarpetaPacienteCargue, "PDE")
                 move(path.join(rutaCarpetaPacienteCargue, "PDE.pdf"), path.join(rutaCarpetaPacienteArmado, "PDE.pdf"))
 
             if(len(listadoTAP) > 0):
+                consola.imprimirComentario("tratadoArchivosCargueSoportes", f"TAP - Se encontraron ({len(listadoTAP)}) archivos de TAP, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
                 self.unirArchivos(listadoTAP, rutaCarpetaPacienteCargue, "TAP")
                 move(path.join(rutaCarpetaPacienteCargue, "TAP.pdf"), path.join(rutaCarpetaPacienteArmado, "TAP.pdf"))
 
             if(len(listadoPDX) > 0):
+                consola.imprimirComentario("tratadoArchivosCargueSoportes", f"PDX - Se encontraron ({len(listadoPDX)}) archivos de PDX, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
                 self.unirArchivos(listadoPDX, rutaCarpetaPacienteCargue, "PDX")
                 move(path.join(rutaCarpetaPacienteCargue, "PDX.pdf"), path.join(rutaCarpetaPacienteArmado, "PDX50.pdf"))
 

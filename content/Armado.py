@@ -128,10 +128,12 @@ class Armado:
         try:
             if(path.isfile(path.join(directorioProyecto, self.rutaAntiguaPeticionJSON))):
                 datosSeteados = dumps(datos, indent = 4)
+                consola.imprimirComentario("escribirDatosAnterioresJSON", f"Escribiendo datos anteriores en JSON de antigua petición, con {len(datos)} datos existentes.")
                 with open(path.join(directorioProyecto, self.rutaAntiguaPeticionJSON), "w") as archivoJSON:
                     archivoJSON.write(datosSeteados)
                     archivoJSON.close()
         except Exception as e:
+            consola.imprimirError(f"Error al escribir los datos anteriores de la petición, error: {e}")
             logger.registrarLogEror(f"No se ha podido escribir los datos del JSON para peticiones anteriores.", "escribirDatosAnterioresJSON")
 
     def orquestarArmado(self):
@@ -152,17 +154,21 @@ class Armado:
                     if(validacionExitencia == False):
                         cuentasNoArmables.append(factura)
                         self.__cuentasArmar.remove(factura) # Si no existe, no se procesará.
-            if(len(self.__cuentasArmar) > 0): # Armado de cuentas.
-                for cuenta in self.__cuentasArmar:
-                    rutaSoportesFactura = path.join(self.rutaSopsDescargados, cuenta["numero_factura"])
-                    neps.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
-                    neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
-                    neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
-                    neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
-                    neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
-                    neps.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
-                    peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
-                neps.controlFinal()
+                if(len(self.__cuentasArmar) > 0): # Armado de cuentas.
+                    for cuenta in self.__cuentasArmar:
+                        rutaSoportesFactura = path.join(self.rutaSopsDescargados, cuenta["numero_factura"])
+                        neps.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
+                        neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
+                        neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
+                        neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
+                        neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
+                        neps.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
+                        peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
+                    neps.controlFinal()
+                else:
+                    logger.registrarLogEror(f"La API ha retornado datos, pero no ha encontrado carpetas para armar.", "orquestarArmado")
+            else:
+                logger.registrarLogEror(f"La respuesta de la API no ha devuelto datos.", "orquestarArmado")
 
 
         

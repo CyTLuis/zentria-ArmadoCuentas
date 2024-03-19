@@ -39,15 +39,19 @@ class Peticiones:
         """
         respuesta = []
         try:
-            consola.imprimirProceso("Inicio de proceso para Obtener Listado de Facturas")
+            consola.imprimirComentario("obtenerListadoFacturas", "Inicio de proceso para Obtener Listado de Facturas")
             res = rq.get(f"{self.__urlAPI}/{self.__dictEndpoints["obtencionFacturas"]}", timeout = 30)
-            respuesta = loads(res.text)
-            consola.imprimirProceso(f"Fin del proceso para Obtener Listado de Facturas [({len(respuesta)})]")
+            response = loads(res.text)
+            if(isinstance(response, list)):
+                respuesta = response
+                consola.imprimirComentario("obtenerListadoFacturas", f"Fin del proceso para Obtener Listado de Facturas [{len(respuesta)}].")
+            else:
+                consola.imprimirComentario("obtenerListadoFacturas", f"La respuesta ha retornado datos diferentes a una lista: ({respuesta}).")
         except Exception as e:
             consola.imprimirError(f"Error en el proceso para Obtener Listado de Facturas [{e}]")
             logger.registrarLogEror(f"Error al generar la petición de facturas para armado de cuentas, error: {e}", "obtenerListadoFacturas")
         finally:
-            print(respuesta)
+            print(f"\tLa respuesta contiene: {len(respuesta)} elementos a procesar.")
             return respuesta
     
     def actualizarEstadoCuenta(self, idFactura: int, estado: str):
@@ -69,7 +73,7 @@ class Peticiones:
                 json = data,
                 timeout = 10
             )
-            print(actualizacion.text)
+            consola.imprimirComentario("actualizarEstadoCuenta", f"Actualización éxitoso para estado de cuenta: {idFactura}, con response: {actualizacion.text}.")
         except Exception as e:
             logger.registrarLogEror(f"No se ha podido actualizar los datos de la cuenta con id: {idFactura}, error: {e}", "actualizarEstadoCuenta")
         finally:
