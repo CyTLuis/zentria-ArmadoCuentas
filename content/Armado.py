@@ -4,7 +4,7 @@
 # Region -  Importaciones de archivos o librerias
 from json import load
 from json import dumps
-from os import  path, getcwd
+from os import  path, getcwd, system
 from datetime import datetime
 
 from controller.Log import Log
@@ -65,9 +65,11 @@ class Armado:
         self.rutaFacturasDescarg = config.getConfigValue("variables", "pathCarpetaFacturas")
 
         self.__entornoDesarrollo = config.getConfigValue("enviroment", "entornoProceso")
-        # if(self.__entornoDesarrollo != "dev"):
-        #     self.__fechaEjecucion = datetime.today().strftime('%d-%m-%Y')
-        #     self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}")
+        if(self.__entornoDesarrollo != "dev"):
+            self.__fechaEjecucion = datetime.today().strftime('%d-%m-%Y')
+            self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}", "Nueva EPS")
+
+        consola.imprimirComentario("Fecha Carpeta Facturas", f"La ruta quedo así: {self.rutaFacturasDescarg}")
 
         # Variables para almacenar el contenido de los JSON
         self.dataSoportesJSON = ""
@@ -75,6 +77,7 @@ class Armado:
 
         # Lista de cuentas que pueden ser armadas.
         self.__cuentasArmar = []
+        self.__cuentasSinActualizar = []
 
     def lecturaJSON(self):
         """
@@ -163,7 +166,12 @@ class Armado:
                         neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
                         neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
                         neps.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
-                        peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
+                        peticion = peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
+                        if peticion["status"] == False:
+                            self.__cuentasSinActualizar.append(peticion["idFactura"]) 
+                    if(len(self.__cuentasSinActualizar) > 0): # Reintento de actualización de estado de cuentas
+                        for cuenta in self.__cuentasSinActualizar:
+                            peticion = peti.actualizarEstadoCuenta(cuenta["idFactura"], "armado_cuentas") # Actualización de estado.
                     neps.controlFinal()
                 else:
                     logger.registrarLogEror(f"La API ha retornado datos, pero no ha encontrado carpetas para armar.", "orquestarArmado")

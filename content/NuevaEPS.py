@@ -175,7 +175,7 @@ class NuevaEPS:
             except Exception as e:
                 self._manejarError(e, cuenta, "HUV")
             try:
-                if len(self.soportes["HAU"]) > 0:
+                if len(self.soportes["HAU"]) > 0 or len(self.soportes["TRIAGE"]) > 0:
                     consola.imprimirComentario("validarSoportesTratadoDiferente", f"HAU - Encontró ({len(self.soportes["HAU"])}) HAU, y buscará si existen TRIAGES.")
                     if len(self.soportes["TRIAGE"]) > 0:
                         consola.imprimirComentario("validarSoportesTratadoDiferente", f"TRIAGE - Encontró ({len(self.soportes["TRIAGE"])}) TRIAGE, para unir con los HAU.")
@@ -239,11 +239,11 @@ class NuevaEPS:
             listadoPDX = []
             for cargue in archivosCargados:
                 rutaSoporteCargue = path.join(rutaCarpetaPacienteCargue, cargue)
-                if any(subcadena in cargue for subcadena in ["AUTORIZAC", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
+                if any(subcadena in cargue for subcadena in ["AUTO", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
                     listadoPDE.append(rutaSoporteCargue)
                 if any(subcadena in cargue for subcadena in ["TRASLADO"]):
                     listadoTAP.append(rutaSoporteCargue)
-                if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS"]):
+                if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS", "CARDIO"]):
                     listadoPDX.append(rutaSoporteCargue)
                 
             if(len(listadoPDE) > 0):
@@ -319,5 +319,9 @@ class NuevaEPS:
             nombreArchivoFinal = path.join(rutaCarpetaPacienteArmado, replaceArchivo)
             if(path.isfile(path.join(rutaCarpetaPacienteArmado, nombreArchivo))):
                 rename(path.join(rutaCarpetaPacienteArmado, nombreArchivo), nombreArchivoFinal)
+                try:
+                    remove(path.join(rutaCarpetaPacienteArmado, nombreArchivo))
+                except Exception as e:
+                    pass
         except Exception as e:
             logger.registrarLogEror(f"Ocurrió un error tratando de renombrar el archivo: {archivoNombreInicial} de la cuenta: {cuenta}, error: {e}", "renombrarPDEconOTR8")

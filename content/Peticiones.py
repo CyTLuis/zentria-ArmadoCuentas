@@ -62,7 +62,7 @@ class Peticiones:
             - idFactura (int): Id de la factura en la tabla.
             - estado (str): Estado que se le asignará.
         """
-        exito = False
+        exito = { "status": False }
         try:
             data = {
                 "id_pdf_factura": idFactura,
@@ -74,7 +74,10 @@ class Peticiones:
                 timeout = 10
             )
             consola.imprimirComentario("actualizarEstadoCuenta", f"Actualización éxitoso para estado de cuenta: {idFactura}, con response: {actualizacion.text}.")
+            exito["status"] = True
         except Exception as e:
+            exito["idFactura"] = idFactura
+            consola.imprimirError(f"Falló en actualización de estado para factura: {idFactura}, error: {e}")
             logger.registrarLogEror(f"No se ha podido actualizar los datos de la cuenta con id: {idFactura}, error: {e}", "actualizarEstadoCuenta")
         finally:
             return exito
