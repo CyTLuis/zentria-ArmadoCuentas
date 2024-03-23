@@ -5,7 +5,7 @@
 from json import load
 from json import dumps
 from os import  path, getcwd, system
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from controller.Log import Log
 from content.NuevaEPS import NuevaEPS
@@ -66,11 +66,14 @@ class Armado:
 
         self.__entornoDesarrollo = config.getConfigValue("enviroment", "entornoProceso")
         if(self.__entornoDesarrollo != "dev"):
+            rutasFacturasOriginal = self.rutaFacturasDescarg
             self.__fechaEjecucion = datetime.today().strftime('%d-%m-%Y')
+            self.__fechaDiaAnterior = (datetime.today() - timedelta(days=1)).strftime('%d-%m-%Y')
             self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}", "Nueva EPS")
+            self.rutaFacturasDiaAnte = path.join(rutasFacturasOriginal, f"facturas-{self.__fechaDiaAnterior}", "Nueva EPS")
 
         consola.imprimirComentario("Fecha Carpeta Facturas", f"La ruta quedo así: {self.rutaFacturasDescarg}")
-
+        consola.imprimirComentario("Fecha Facturas Anterior", f"La ruta de facturas del día anterior es: {self.rutaFacturasDiaAnte}")
         # Variables para almacenar el contenido de los JSON
         self.dataSoportesJSON = ""
         self.dataNomenclaJSON = ""
@@ -163,7 +166,7 @@ class Armado:
                         neps.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
                         neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
                         neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
-                        neps.copiadoFactura(self.rutaFacturasDescarg, cuenta["numero_factura"], "NEPS") # Copiado de factura
+                        neps.copiadoFactura(self.rutaFacturasDescarg, self.rutaFacturasDiaAnte, cuenta["numero_factura"], "NEPS") # Copiado de factura
                         neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
                         neps.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
                         peticion = peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.

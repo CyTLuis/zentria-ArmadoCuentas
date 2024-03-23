@@ -81,31 +81,36 @@ class NuevaEPS:
             consola.imprimirError(f"Error en la cuenta: {cuenta}, en el copiado del arbol, con error: {e}")
             logger.registrarLogEror(f"Error reportado en el armado de cuentas, y copia de archivos, error: {e}", "copiadoSoportes")
 
-    def copiadoFactura(self, ruta: str, cuenta: str, eps: str):
+    def copiadoFactura(self, ruta: str, rutaSecundaria: str, cuenta: str, eps: str):
         """
         Este metodo se encargará de que en cada iteración en
         que sea llamado, busque la factura de la cuenta en
         PDF y la copie a la ruta de armado de cuenta.
         - `Args:`
             - `ruta` (str): Ruta contenedora de las cuentas de facturas
+            - `rutaSecundaria` (str): Otra posible ruta contenedora de facturas.
             - `cuenta` (str): Cuenta que se esta iterando
             - `eps` (str): EPS que se esta tratando.
         """
         try:
             rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta) # Ruta en la carpeta de cuentas armadas, por paciente
             rutaFacturaPaciente = path.join(ruta, f"{cuenta}.pdf") # Ruta total donde se descargo la factura del paciente.
-            if(path.isfile(rutaFacturaPaciente)): # Valida si existe la factura correctamente.
-                copy2(rutaFacturaPaciente, rutaCarpetaPacienteArmado) # Copia la factura de donde se descargo, a la ruta del armado.
-                consola.imprimirComentario("copiadoFactura", f"Se ha COPIADO correctamente la factura de la cuenta: {cuenta}")
-                rutaFacturaCopiada = path.join(rutaCarpetaPacienteArmado, f"{cuenta}.pdf") # Ruta de la factura copiada en la carpeta del armado.
-                cuenta = cuenta.replace("CASM-", "CASM") # Reemplazo para renombre de la factura
-                strNomenSoporte = self.dataNomenclatura["renombreFactura"] # Nomenclatura para renombre de factura.
-                strRenombreFactura = strNomenSoporte.replace("$soporte", "FVS").replace("$nit", self.__nitEntidad).replace("$factura", cuenta) # Formateo de str de nuevo nombre
-                consola.imprimirComentario("copiadoFactura", f"Se ha RENOMBRADO correctamente la factura de la cuenta: {cuenta}")
-                rename(rutaFacturaCopiada, path.join(rutaCarpetaPacienteArmado, strRenombreFactura))
-            else:
+            rutaFacturaPacienteSecundaria = path.join(rutaSecundaria, f"{cuenta}.pdf") # Ruta de facturas con fecha anterior.
+            if(path.isfile(rutaFacturaPaciente) == False and path.isfile(rutaFacturaPacienteSecundaria) == False): # Valida si existe la factura correctamente.
                 consola.imprimirProceso(f"No existe factura para la cuenta: {cuenta}.")
                 self.__pacientesSinFacturas.append(cuenta)
+                return
+            try:
+                copy2(rutaFacturaPaciente, rutaCarpetaPacienteArmado) # Copia la factura de donde se descargo, a la ruta del armado.
+            except Exception as e:
+                copy2(rutaFacturaPacienteSecundaria, rutaCarpetaPacienteArmado) # Copia la factura de la 2 opción, a la ruta del armado.
+            consola.imprimirComentario("copiadoFactura", f"Se ha COPIADO correctamente la factura de la cuenta: {cuenta}")
+            rutaFacturaCopiada = path.join(rutaCarpetaPacienteArmado, f"{cuenta}.pdf") # Ruta de la factura copiada en la carpeta del armado.
+            cuenta = cuenta.replace("CASM-", "CASM") # Reemplazo para renombre de la factura
+            strNomenSoporte = self.dataNomenclatura["renombreFactura"] # Nomenclatura para renombre de factura.
+            strRenombreFactura = strNomenSoporte.replace("$soporte", "FVS").replace("$nit", self.__nitEntidad).replace("$factura", cuenta) # Formateo de str de nuevo nombre
+            rename(rutaFacturaCopiada, path.join(rutaCarpetaPacienteArmado, strRenombreFactura))
+            consola.imprimirComentario("copiadoFactura", f"Se ha RENOMBRADO correctamente la factura de la cuenta: {cuenta}")
         except Exception as e:
             self.__pacientesSinFacturas.append(cuenta)
             consola.imprimirError(f"Fallo con factura de cuenta: {cuenta}, para copiar o renombrar la factura, error: {e}")
