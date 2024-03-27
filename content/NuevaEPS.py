@@ -234,52 +234,62 @@ class NuevaEPS:
         Este metodo se encargará de tratar aquellos archivos que
         están dentro de la carpeta, cargue de soportes.
         """
-        rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
-        rutaCarpetaPacienteCargue = path.join(rutaCarpetaPacienteArmado, "Cargue de Archivos")
-        consola.imprimirComentario("tratadoArchivosCargueSoportes", f"Se hará el tratado de archivos de Cargue de Archivos, de la cuenta: {cuenta}")
-        if(path.isdir(rutaCarpetaPacienteCargue)):
-            archivosCargados = listdir(rutaCarpetaPacienteCargue)
-            listadoPDE = []
-            listadoTAP = []
-            listadoPDX = []
-            for cargue in archivosCargados:
-                rutaSoporteCargue = path.join(rutaCarpetaPacienteCargue, cargue)
-                if any(subcadena in cargue for subcadena in ["AUTO", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
-                    listadoPDE.append(rutaSoporteCargue)
-                if any(subcadena in cargue for subcadena in ["TRASLADO"]):
-                    listadoTAP.append(rutaSoporteCargue)
-                if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS", "CARDIO"]):
-                    listadoPDX.append(rutaSoporteCargue)
-                
-            if(len(listadoPDE) > 0):
-                consola.imprimirComentario("tratadoArchivosCargueSoportes", f"PDE - Se encontraron ({len(listadoPDE)}) archivos de PDE, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
-                self.unirArchivos(listadoPDE, rutaCarpetaPacienteCargue, "PDE")
-                if(path.isfile(path.join(rutaCarpetaPacienteArmado, "PDE.pdf"))):
-                    listaMultiplesPDE = [path.join(rutaCarpetaPacienteCargue, "PDE.pdf"), path.join(rutaCarpetaPacienteArmado, "PDE.pdf")]
-                    self.unirArchivos(listaMultiplesPDE, rutaCarpetaPacienteCargue, "PDE")
-                move(path.join(rutaCarpetaPacienteCargue, "PDE.pdf"), path.join(rutaCarpetaPacienteArmado, "PDE.pdf"))
+        exito = False
+        try:
+            rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
+            rutaCarpetaPacienteCargue = path.join(rutaCarpetaPacienteArmado, "Cargue de Archivos")
+            consola.imprimirComentario("tratadoArchivosCargueSoportes", f"Se hará el tratado de archivos de Cargue de Archivos, de la cuenta: {cuenta}")
+            if(path.isdir(rutaCarpetaPacienteCargue)):
+                archivosCargados = listdir(rutaCarpetaPacienteCargue)
+                listadoPDE = []
+                listadoTAP = []
+                listadoPDX = []
+                for cargue in archivosCargados:
+                    rutaSoporteCargue = path.join(rutaCarpetaPacienteCargue, cargue)
+                    if any(subcadena in cargue for subcadena in ["AUTO", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
+                        listadoPDE.append(rutaSoporteCargue)
+                    if any(subcadena in cargue for subcadena in ["TRASLADO"]):
+                        listadoTAP.append(rutaSoporteCargue)
+                    if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS", "CARDIO"]):
+                        listadoPDX.append(rutaSoporteCargue)
+                    
+                if(len(listadoPDE) > 0):
+                    consola.imprimirComentario("tratadoArchivosCargueSoportes", f"PDE - Se encontraron ({len(listadoPDE)}) archivos de PDE, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
+                    self.unirArchivos(listadoPDE, rutaCarpetaPacienteCargue, "PDE")
+                    if(path.isfile(path.join(rutaCarpetaPacienteArmado, "PDE.pdf"))):
+                        listaMultiplesPDE = [path.join(rutaCarpetaPacienteCargue, "PDE.pdf"), path.join(rutaCarpetaPacienteArmado, "PDE.pdf")]
+                        self.unirArchivos(listaMultiplesPDE, rutaCarpetaPacienteCargue, "PDE")
+                    move(path.join(rutaCarpetaPacienteCargue, "PDE.pdf"), path.join(rutaCarpetaPacienteArmado, "PDE.pdf"))
 
-            if(len(listadoTAP) > 0):
-                consola.imprimirComentario("tratadoArchivosCargueSoportes", f"TAP - Se encontraron ({len(listadoTAP)}) archivos de TAP, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
-                self.unirArchivos(listadoTAP, rutaCarpetaPacienteCargue, "TAP")
-                move(path.join(rutaCarpetaPacienteCargue, "TAP.pdf"), path.join(rutaCarpetaPacienteArmado, "TAP.pdf"))
+                if(len(listadoTAP) > 0):
+                    consola.imprimirComentario("tratadoArchivosCargueSoportes", f"TAP - Se encontraron ({len(listadoTAP)}) archivos de TAP, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
+                    self.unirArchivos(listadoTAP, rutaCarpetaPacienteCargue, "TAP")
+                    move(path.join(rutaCarpetaPacienteCargue, "TAP.pdf"), path.join(rutaCarpetaPacienteArmado, "TAP.pdf"))
 
-            if(len(listadoPDX) > 0):
-                consola.imprimirComentario("tratadoArchivosCargueSoportes", f"PDX - Se encontraron ({len(listadoPDX)}) archivos de PDX, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
-                self.unirArchivos(listadoPDX, rutaCarpetaPacienteCargue, "PDX")
-                move(path.join(rutaCarpetaPacienteCargue, "PDX.pdf"), path.join(rutaCarpetaPacienteArmado, "PDX50.pdf"))
+                if(len(listadoPDX) > 0):
+                    consola.imprimirComentario("tratadoArchivosCargueSoportes", f"PDX - Se encontraron ({len(listadoPDX)}) archivos de PDX, de la cuenta: {cuenta}, en la carpeta de cargue de archivos.")
+                    self.unirArchivos(listadoPDX, rutaCarpetaPacienteCargue, "PDX")
+                    move(path.join(rutaCarpetaPacienteCargue, "PDX.pdf"), path.join(rutaCarpetaPacienteArmado, "PDX50.pdf"))
+                exito = True
+        except Exception as e:
+            consola.imprimirComentario("tratadoArchivosCargueSoportes - Error", f"Error en el tratado de cargue de archivos de la cuenta: {cuenta}, con error: {e}")
+        finally:
+            return exito
 
     def unirArchivos(self, listadoSoportesUnir: list, rutaCarpetaGuardar: str, soporte: str):
         """
         Este metodo se encargará de unir los archivos
         usando la librería de PyPDF2 y su metodo Merge
         """
-        merger = PdfWriter() # Se instancia el escritor de PDF
-        for pdf in listadoSoportesUnir:
-            merger.append(pdf) # Se agrega cada full path de los PDF
-            remove(pdf) # Se elimina el PDF de la ruta
-        merger.write(f"{rutaCarpetaGuardar}\\{soporte}.pdf") # Se unen todos los PDF en uno
-        merger.close() # Se cierra la instancia del escritor.
+        try:
+            merger = PdfWriter() # Se instancia el escritor de PDF
+            for pdf in listadoSoportesUnir:
+                merger.append(pdf) # Se agrega cada full path de los PDF
+                remove(pdf) # Se elimina el PDF de la ruta
+            merger.write(f"{rutaCarpetaGuardar}\\{soporte}.pdf") # Se unen todos los PDF en uno
+            merger.close() # Se cierra la instancia del escritor.
+        except Exception as e:
+            consola.imprimirError(f"No ha podido hacer la unión del soporte: {soporte}, por error: {e}")
     
     def moverSegunRegimen(self, eps: str, regimen: str, cuenta: str):
         """
@@ -290,9 +300,16 @@ class NuevaEPS:
             `regimen (str):` Regimen de la cuenta que se esta iterando
             `cuenta (str):` Cuenta que se itera
         """
-        rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
-        rutaCarpetaPacientePorRegimen = path.join(self.__rutaArmado, eps, regimen, cuenta)
-        move(rutaCarpetaPacienteArmado, rutaCarpetaPacientePorRegimen)
+        exito = False
+        try:
+            rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
+            rutaCarpetaPacientePorRegimen = path.join(self.__rutaArmado, eps, regimen, cuenta)
+            move(rutaCarpetaPacienteArmado, rutaCarpetaPacientePorRegimen)
+            exito = True
+        except Exception as e:
+            consola.imprimirError(f"Error en mover la carpeta según su regimen, error: {e}")
+        finally:
+            return exito
 
     def controlFinal(self):
         """
@@ -329,4 +346,5 @@ class NuevaEPS:
                 except Exception as e:
                     pass
         except Exception as e:
-            logger.registrarLogEror(f"Ocurrió un error tratando de renombrar el archivo: {archivoNombreInicial} de la cuenta: {cuenta}, error: {e}", "renombrarPDEconOTR8")
+            logger.registrarLogEror(f"Ocurrió un error tratando de renombrar el archivo: {archivoNombreInicial} de la cuenta: {cuenta}, error: {e}", "renombrarPDEconOTRO")
+            consola.imprimirError(f"Ocurrió un error tratando de renombrar el archivo: {archivoNombreInicial} de la cuenta: {cuenta}, error: {e}")
