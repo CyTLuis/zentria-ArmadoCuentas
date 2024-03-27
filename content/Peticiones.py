@@ -1,11 +1,13 @@
 import requests as rq
 from json import loads
 from controller.Log import Log
+from controller.Impresor import Impresor
 from controller.utils.Helpers import Helpers
 from controller.utils.Configurations import Configurations
 
 logger = Log()
 helper = Helpers()
+consola = Impresor()
 config = Configurations()
 
 class Peticiones:
@@ -37,11 +39,19 @@ class Peticiones:
         """
         respuesta = []
         try:
-            res = rq.get(f"{self.__urlAPI}/{self.__dictEndpoints["obtencionFacturas"]}")
-            respuesta = loads(res.text)
+            consola.imprimirComentario("obtenerListadoFacturas", "Inicio de proceso para Obtener Listado de Facturas")
+            res = rq.get(f"{self.__urlAPI}/{self.__dictEndpoints["obtencionFacturas"]}", timeout = 30)
+            response = loads(res.text)
+            if(isinstance(response, list)):
+                respuesta = response
+                consola.imprimirComentario("obtenerListadoFacturas", f"Fin del proceso para Obtener Listado de Facturas [{len(respuesta)}].")
+            else:
+                consola.imprimirComentario("obtenerListadoFacturas", f"La respuesta ha retornado datos diferentes a una lista: ({respuesta}).")
         except Exception as e:
+            consola.imprimirError(f"Error en el proceso para Obtener Listado de Facturas [{e}]")
             logger.registrarLogEror(f"Error al generar la petición de facturas para armado de cuentas, error: {e}", "obtenerListadoFacturas")
         finally:
+            print(f"\tLa respuesta contiene: {len(respuesta)} elementos a procesar.")
             return respuesta
     
     def actualizarEstadoCuenta(self, idFactura: int, estado: str):
@@ -52,7 +62,7 @@ class Peticiones:
             - idFactura (int): Id de la factura en la tabla.
             - estado (str): Estado que se le asignará.
         """
-        exito = False
+        exito = { "status": False }
         try:
             data = {
                 "id_pdf_factura": idFactura,
@@ -60,10 +70,21 @@ class Peticiones:
             }
             actualizacion = rq.post(
                 f"{self.__urlAPI}/{self.__dictEndpoints["actualizacionEstado"]}",
-                json = data
+                json = data,
+                timeout = 10
             )
-            print(actualizacion.text)
+            consola.imprimirComentario("actualizarEstadoCuenta", f"Actualización éxitoso para estado de cuenta: {idFactura}, con response: {actualizacion.text}.")
+            exito["status"] = True
         except Exception as e:
+            exito["idFactura"] = idFactura
+            consola.imprimirError(f"Falló en actualización de estado para factura: {idFactura}, error: {e}")
             logger.registrarLogEror(f"No se ha podido actualizar los datos de la cuenta con id: {idFactura}, error: {e}", "actualizarEstadoCuenta")
         finally:
             return exito
+    
+    def crearAlertaSoporteFaltante(self, soporte: str, cuenta: str):
+        """
+        Se consumirá en la API un endpoint para generar
+        una alerta sobre el soporte faltante de la cuenta
+        que se esta recorriendo en el armado.
+        """
