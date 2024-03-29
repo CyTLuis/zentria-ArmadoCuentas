@@ -44,14 +44,14 @@ class Peticiones:
             response = loads(res.text)
             if(isinstance(response, list)):
                 respuesta = response
-                consola.imprimirComentario("obtenerListadoFacturas", f"Fin del proceso para Obtener Listado de Facturas [{len(respuesta)}].")
+                consola.imprimirInfoColor("Obtención de datos de la API", f"Se han obtenido [{len(respuesta)}] datos a procesar de la API.")
             else:
-                consola.imprimirComentario("obtenerListadoFacturas", f"La respuesta ha retornado datos diferentes a una lista: ({respuesta}).")
+                consola.imprimirWarnColor("Obtención de datos de la API", f"La API ha retornado datos diferentes a una lista: [{response}]")
         except Exception as e:
-            consola.imprimirError(f"Error en el proceso para Obtener Listado de Facturas [{e}]")
+            consola.imprimirErrorColor("Error al consultar la API", f"Ocurrió un proceso en obtención de datos de la API, error: {e}")
             logger.registrarLogEror(f"Error al generar la petición de facturas para armado de cuentas, error: {e}", "obtenerListadoFacturas")
         finally:
-            print(f"\tLa respuesta contiene: {len(respuesta)} elementos a procesar.")
+            consola.imprimirInfoColor("Respuesta de la API", f"Al final de la función de la API, se ha retornado que existen: {len(respuesta)} elementos a procesar")
             return respuesta
     
     def actualizarEstadoCuenta(self, idFactura: int, estado: str):

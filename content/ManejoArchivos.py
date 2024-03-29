@@ -2,11 +2,10 @@
 # Importaciones de clases y librerias necesarias en este archivo main
 # ===========================================================================
 # Region -  Importaciones de archivos o librerias
-from pypdf import PdfWriter
 from typing import Dict, List
+from pypdf import PdfWriter, PdfReader
 from shutil import copytree, copy2, move
 from os import listdir, path, rename, remove, system
-
 
 from controller.Log import Log
 from controller.Impresor import Impresor
@@ -23,25 +22,27 @@ consola = Impresor()
 config= Configurations()
 # Endregion - Instancia de clases de archivos importado
 
-class NuevaEPS:
+class ManejoArchivos:
     """
-        NuevaEPS
+        ManejoArchivos
         ======= 
-        La clase NuevaEPS solo se encargará de gestionar los
+        La clase ManejoArchivos solo se encargará de gestionar los
         parametros para el renombre y movimiento de los archivos
         que pertenecen a la entidad Nueva EPS.
     """
     
-    # Constructor de la clase
     def __init__(self):
         """
-        Metodo constructor de la clase NuevaEPS.
-
+        Metodo constructor de la clase ManejoArchivos.
         - `Descripción de variables:`
-            - rutaSopXEPSJSON (str): [pathLike] Ruta de ubicación del JSON de NEPS.
-            - dataEPSJSON (str): [pathLike || JSON data] Variable vacia inicial, luego tendrá datos de JSON.
+            - `public` dataNomenclatura (str) : Almacenado del JSON de la nomenclatura de renombre.
+            - `private` __nitEntidad (str): NIT de la entidad desde el archivo de configuración.
+            - `private` __rutaArmado (str): Ruta de la carpeta donde se crea el armado.
+            - `private` __pacientesConErrores (list): Lista de cuentas que tuvieron errores.
+            - `private` __pacientesSinSoportes (list): Lista de cuentas que no tienen archivos en su carpeta.
+            - `private` __pacientesSinFacturas (list): Listado de pacientes que no tienen archivo tipo Factura de la cuenta.
+            - `public` soportes (Dict|List) : Dict de listas de archivos con tratamiento de unión de archivos.
         """
-        # Variables para almacenar el contenido de los JSON
         self.dataNomenclatura = ""
         self.__nitEntidad = config.getConfigValue("variables", "entidadNIT")
         self.__rutaArmado = config.getConfigValue("variables", "pathCarpetaArmados")
@@ -73,12 +74,12 @@ class NuevaEPS:
             rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta) # Se busca la cuenta en la carpeta de soportes descargados.
             if(path.isdir(ruta) == False or len(listdir(ruta)) == 0): # En caso de no existir o no tener soportes, se reportará
                 self.__pacientesSinSoportes(cuenta) # Si la cuenta no existe, se reporta en las cuentas sin soportes
-                consola.imprimirComentario("copiadoSop", f"La cuenta: {cuenta} no tiene datos, o directamente no existe.")
+                consola.imprimirWarnColor(f"Cuenta: {cuenta}" f"La cuenta no tiene archivos para copiar, o no existe en la carpeta de descargas.")
             else:
                 copytree(ruta, rutaCarpetaPacienteArmado, dirs_exist_ok = True) # Copia del arbol completo de la carpeta de soportes, a la de armado
                 consola.imprimirComentario("copiadoSop", f"Se ha hecho el copiado del arbol para la cuenta: {cuenta}, con {len(listdir(ruta))} datos de carpetas.")
         except Exception as e:
-            consola.imprimirError(f"Error en la cuenta: {cuenta}, en el copiado del arbol, con error: {e}")
+            consola.imprimirErrorColor(f"Cuenta: {cuenta}", f"Error en la cuenta: {cuenta}, en el copiado del arbol, con error: {e}")
             logger.registrarLogEror(f"Error reportado en el armado de cuentas, y copia de archivos, error: {e}", "copiadoSoportes")
 
     def copiadoFactura(self, ruta: str, rutaSecundaria: str, cuenta: str, eps: str):
@@ -97,27 +98,28 @@ class NuevaEPS:
             rutaFacturaPaciente = path.join(ruta, f"{cuenta}.pdf") # Ruta total donde se descargo la factura del paciente.
             rutaFacturaPacienteSecundaria = path.join(rutaSecundaria, f"{cuenta}.pdf") # Ruta de facturas con fecha anterior.
             if(path.isfile(rutaFacturaPaciente) == False and path.isfile(rutaFacturaPacienteSecundaria) == False): # Valida si existe la factura correctamente.
-                consola.imprimirProceso(f"No existe factura para la cuenta: {cuenta}.")
+                consola.imprimirWarnColor(f"Cuenta: {cuenta}", f"No se ha encontrado la FACTURA para la cuenta.")
                 self.__pacientesSinFacturas.append(cuenta)
                 return
             try:
                 copy2(rutaFacturaPaciente, rutaCarpetaPacienteArmado) # Copia la factura de donde se descargo, a la ruta del armado.
+                consola.imprimirComentario(f"Cuenta: {cuenta}", f"La factura se ha copiado de la ruta: Facturas de hoy.")
             except Exception as e:
                 copy2(rutaFacturaPacienteSecundaria, rutaCarpetaPacienteArmado) # Copia la factura de la 2 opción, a la ruta del armado.
-            consola.imprimirComentario("copiadoFactura", f"Se ha COPIADO correctamente la factura de la cuenta: {cuenta}")
+                consola.imprimirComentario(f"Cuenta: {cuenta}", f"La factura se ha copiado de la ruta: Facturas con fecha de ayer.")
             rutaFacturaCopiada = path.join(rutaCarpetaPacienteArmado, f"{cuenta}.pdf") # Ruta de la factura copiada en la carpeta del armado.
             cuenta = cuenta.replace("CASM-", "CASM") # Reemplazo para renombre de la factura
             strNomenSoporte = self.dataNomenclatura["renombreFactura"] # Nomenclatura para renombre de factura.
             strRenombreFactura = strNomenSoporte.replace("$soporte", "FVS").replace("$nit", self.__nitEntidad).replace("$factura", cuenta) # Formateo de str de nuevo nombre
             rename(rutaFacturaCopiada, path.join(rutaCarpetaPacienteArmado, strRenombreFactura))
-            consola.imprimirComentario("copiadoFactura", f"Se ha RENOMBRADO correctamente la factura de la cuenta: {cuenta}")
+            consola.imprimirComentario(f"Cuenta: [{cuenta}]", f"Se ha RENOMBRADO correctamente la factura de la cuenta: {cuenta}")
         except Exception as e:
             self.__pacientesSinFacturas.append(cuenta)
-            consola.imprimirError(f"Fallo con factura de cuenta: {cuenta}, para copiar o renombrar la factura, error: {e}")
+            consola.imprimirErrorColor(f"Tratado factura - Cuenta: {cuenta}", f"Imposible hacer el tratado de la factura, error: {e}")
             logger.registrarLogEror(f"Fallo con factura de cuenta: {cuenta}, para copiar o renombrar la factura, error: {e}", "copiadoSoportes")
     
     def _manejarError(self, error: Exception, cuenta: str, tipoSoporte: str):
-        consola.imprimirError(f"Error reportado desde la unión de los archivos {tipoSoporte} de la cuenta: {cuenta}, con error: {error}")
+        consola.imprimirErrorColor(f"Archivos Cargue de Archivos - Cuenta: {cuenta}", f"Error reportado desde la unión de los archivos {tipoSoporte}, con error: {error}")
         logger.registrarLogEror(f"Error haciendo el tratado de soporte de tipo [{tipoSoporte}] de la cuenta: {cuenta}, error: {error}", "renombrarArchivos")
 
     def validarSoportesTratadoDiferente(self, soporte: str, rutaCarpPacArmado: str, cuenta: str, momento: int, strNombreSoporte: str = None):
@@ -193,9 +195,9 @@ class NuevaEPS:
 
     def renombrarArchivos(self, eps: str, cuenta: str):
         """
-        Este metodo recorrerá todas las carpetas de radicado,
-        identificando los soportes y renombrando según el orden
-        que se trae en su nomenclatura.
+        Este metodo se encargará de recorrer la lista de
+        los archivos de la cuenta que se obtiene, para hacer
+        el tratado de los mismos, sea solo renombrar, o unirlos.
         - `Argumentos:`
             - `eps:` (str) Abreviatura de la EPS que se esta procesando.
             - `cuenta:` (str) Cuenta o factura que se esta iterando y se hará renombre de archivos.
@@ -222,6 +224,7 @@ class NuevaEPS:
                                     remove(path.join(rutaCarpetaPacienteArmado, soporte))
                                     consola.imprimirComentario("renombrarArchivos", f"Se finaliza removiendo el soporte: {soporte} de la cuenta de la carpeta, SOLO EN CASO DE EXISTIR.")
                     except Exception as e:
+                        consola.imprimirErrorColor(f"Renombre archivos - Cuenta: {cuenta}", f"Se ha generado un fallo renombrado los archivos, error: {e}")
                         logger.registrarLogEror(f"Error en el renombre del soporte: {soporte} de la cuenta: {cuenta}, error: {e}", "renombrarArchivos")
                 self.validarSoportesTratadoDiferente(soporte, rutaCarpetaPacienteArmado, cuenta, 2, strNomenSoporte)
             else:
@@ -233,17 +236,19 @@ class NuevaEPS:
         """
         Este metodo se encargará de tratar aquellos archivos que
         están dentro de la carpeta, cargue de soportes.
+
+        Se validará el nombre de los archivos contra unos listados
+        definidos, pertenecientes a un tipo de soporte, de tal forma
+        que se pueda unir los archivos en uno solo.
         """
         exito = False
         try:
             rutaCarpetaPacienteArmado = path.join(self.__rutaArmado, eps, cuenta)
             rutaCarpetaPacienteCargue = path.join(rutaCarpetaPacienteArmado, "Cargue de Archivos")
-            consola.imprimirComentario("tratadoArchivosCargueSoportes", f"Se hará el tratado de archivos de Cargue de Archivos, de la cuenta: {cuenta}")
             if(path.isdir(rutaCarpetaPacienteCargue)):
+                consola.imprimirInfoColor(f"Tratado Cargue de Archivos - Cuenta: {cuenta}", f"Se iniciará el tratado de los archivos de la carpeta Cargue de Archivos.")
                 archivosCargados = listdir(rutaCarpetaPacienteCargue)
-                listadoPDE = []
-                listadoTAP = []
-                listadoPDX = []
+                listadoPDE = [], listadoTAP = [], listadoPDX = []
                 for cargue in archivosCargados:
                     rutaSoporteCargue = path.join(rutaCarpetaPacienteCargue, cargue)
                     if any(subcadena in cargue for subcadena in ["AUTO", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
@@ -272,24 +277,38 @@ class NuevaEPS:
                     move(path.join(rutaCarpetaPacienteCargue, "PDX.pdf"), path.join(rutaCarpetaPacienteArmado, "PDX50.pdf"))
                 exito = True
         except Exception as e:
-            consola.imprimirComentario("tratadoArchivosCargueSoportes - Error", f"Error en el tratado de cargue de archivos de la cuenta: {cuenta}, con error: {e}")
+            consola.imprimirErrorColor(f"Tratado Cargue de Archivos - Cuenta: {cuenta}", f"Falló el tratado de cargue de archivos, error: {e}")
         finally:
             return exito
 
     def unirArchivos(self, listadoSoportesUnir: list, rutaCarpetaGuardar: str, soporte: str):
         """
-        Este metodo se encargará de unir los archivos
-        usando la librería de PyPDF2 y su metodo Merge
+        A través de la libreria `pypdf` se hará la unión
+        de los PDF, que se encuentran en una lista de rutas
+        donde cada ruta representa un PDF distinto, se deberá
+        validar cada PDF antes de intentar hacer la unión con
+        los demás, buscando así, en caso de que el PDF sea invalido.
+        - `Args:`
+            - `listadoSoportesUnir (list):` Listado de rutas de PDFs.
+            - `rutaCarpetaGuardar (str):` Ruta donde guardar el PDF resultante.
+            - `soporte (str):` Nombre con el cual guardar el PDF.
         """
         try:
             merger = PdfWriter() # Se instancia el escritor de PDF
             for pdf in listadoSoportesUnir:
-                merger.append(pdf) # Se agrega cada full path de los PDF
-                remove(pdf) # Se elimina el PDF de la ruta
+                try:
+                    with open(pdf, 'rb') as file: # Se intenta leer el archivo
+                        reader = PdfReader(file) # Se lee el archivo PDF
+                        _ = reader.numPages # Si el archivo es leído, no es corrupto, y podrá ser procesado.
+                    merger.append(pdf) # Se agrega cada full path al merger.
+                    remove(pdf) # Se elimina el PDF de la ruta
+                except Exception as e:
+                    consola.imprimirWarnColor("Archivo PDF corrupto", f"El archivo en la ruta: {pdf}, está corrupto, y no será procesado para el archivo: {soporte}")
+                    next # Si el archivo es corrupto, se mostrará en consola, y se pasará al siguiente archivo.
             merger.write(f"{rutaCarpetaGuardar}\\{soporte}.pdf") # Se unen todos los PDF en uno
             merger.close() # Se cierra la instancia del escritor.
         except Exception as e:
-            consola.imprimirError(f"No ha podido hacer la unión del soporte: {soporte}, por error: {e}")
+            consola.imprimirErrorColor("Falló en unión de archivos.", f"No ha podido hacer la unión del soporte: [{soporte}], con error: {e}")
     
     def moverSegunRegimen(self, eps: str, regimen: str, cuenta: str):
         """
@@ -318,8 +337,13 @@ class NuevaEPS:
         o sin soportes, o que han sido erroneos.
         """
         logger.registrarComentario("Pacientes sin facturas", f"{self.__pacientesSinFacturas}")
+        consola.imprimirInfoColor("Pacientes sin facturas", f"{self.__pacientesSinFacturas}")
+
         logger.registrarComentario("Pacientes sin soportes", f"{self.__pacientesSinSoportes}")
+        consola.imprimirInfoColor("Pacientes sin soportes", f"{self.__pacientesSinSoportes}")
+        
         logger.registrarComentario("Pacientes con errores", f"{self.__pacientesConErrores}")
+        consola.imprimirInfoColor("Pacientes con errores", f"{self.__pacientesConErrores}")
 
     def renombrarPDEconOTRO(self, eps: str, regimen: str, cuenta: str, archivoNombreInicial: str, nombreFinal: str):
         """

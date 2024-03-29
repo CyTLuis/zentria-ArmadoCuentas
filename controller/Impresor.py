@@ -4,6 +4,7 @@
 
 # region - Importaciones de librerias o clases
 from datetime import datetime,timedelta
+from colorama import Fore, Back, Style
 # endregion - Importaciones de librerias o clases
 
 class Impresor:
@@ -98,5 +99,62 @@ class Impresor:
         data += "============================================================================================================================\n"
         print(data)
         
+    def imprimirErrorColor(self, titulo: str, error: str) -> None:
+        """
+        Este metodo imprimira un mensaje de error en 
+        consola, con una configuración de color RED
+        de manera que sea visible dentro de los demás
+        mensajes impresos en la consola.
+        - `Args:`
+           -  `titulo (str):` Titulo o nombre del metodo donde se generá el error.
+           -  `error (str):` Mensaje del error, descriptivo, más variable del error.
+        - `Usos:`
+            - Informar sobre un posible error critico en un proceso.
+        """
+        self.settiempoActual((datetime.today() - timedelta(hours = 0)).strftime('%Y-%m-%d %H:%M:%S'))
+        mensaje = Back.LIGHTRED_EX + Fore.LIGHTRED_EX + "============================================================================================================================\n" + Back.RESET + Fore.RESET
+        mensaje += Fore.RED + f"| [{titulo}] - [{self.gettiempoActual()}] | \n" + Fore.RESET
+        mensaje += Fore.BLACK + f"| {error} | \n" + Fore.RESET
+        mensaje += Back.LIGHTRED_EX + Fore.LIGHTRED_EX + "============================================================================================================================\n" + Back.RESET + Fore.RESET
+        print(mensaje)
+    
+    def imprimirInfoColor(self, titulo: str, data: str) -> None:
+        """
+        Este metodo podrá ser usado para multiples propositos
+        por ejemplo, para imprimir en consola, el inicio del tratado
+        de un proceso especifico, o para validar la información de
+        un metodo que se este ejecutando. Se imprimirá en Azul.
+        - `Args:`
+           -  `titulo (str):` Titulo del mensaje a mostrar -> [Titulo - Fecha (Y-m-d H-M-S)].
+           -  `data (str):` Mensaje que se desea mostrar en consola, siendo descriptivo.
+        - `Usos:`
+            - Para indicar la finalización del tratado de un proceso.
+            - Para informar sobre el inicio de una función.
+        """
+        self.settiempoActual((datetime.today() - timedelta(hours = 0)).strftime('%Y-%m-%d %H:%M:%S'))
+        mensaje = f"{Back.LIGHTBLUE_EX}{Fore.LIGHTBLUE_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
+        mensaje += f"{Fore.BLUE}| [{titulo}] - [{self.gettiempoActual()}] | { Fore.RESET}\n"
+        mensaje += f"{Fore.BLACK}| {data} | {Fore.RESET}\n"
+        mensaje += f"{Back.LIGHTBLUE_EX}{Fore.LIGHTBLUE_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
+        print(mensaje)
+    
+    def imprimirWarnColor(self, titulo: str, data: str) -> None:
+        """
+        Con este metodo, imprimiremos en consola aquellos
+        mensajes de advertencia de lo que sucede en el proceso
+        de manera que podremos identificar aquel falla no
+        critica en el mismo. Se imprimira en Amarillo
+        - `Args:` 
+           -  `titulo (str):` Titulo del mensaje a mostrar -> [Titulo - Fecha (Y-m-d H-M-S)].
+           -  `data (str):` Mensjae que se desea mostrar en consola, siendo descriptivo.
+        - `Usos:`
+            - Advertir de un posible error, que no afectaría del todo la ejecución del proceso.      
+        """
+        self.settiempoActual((datetime.today() - timedelta(hours = 0)).strftime('%Y-%m-%d %H:%M:%S'))
+        mensaje = f"{Back.LIGHTYELLOW_EX}{Fore.LIGHTYELLOW_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
+        mensaje += f"{Fore.YELLOW}| [{titulo}] - [{self.gettiempoActual()}] | { Fore.RESET}\n"
+        mensaje += f"{Fore.BLACK}| {data} | {Fore.RESET}\n"
+        mensaje += f"{Back.LIGHTYELLOW_EX}{Fore.LIGHTYELLOW_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
+        print(mensaje)
     # Endregion - Metodos en la clase  
              
