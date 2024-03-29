@@ -4,7 +4,7 @@
 
 # region - Importaciones de librerias o clases
 from datetime import datetime,timedelta
-from colorama import Fore, Back, Style
+from colorama import Fore, Back, init
 # endregion - Importaciones de librerias o clases
 
 class Impresor:
@@ -22,6 +22,7 @@ class Impresor:
             Constructor de la clase `Impresor`, donde se inicializan
             las variables de la clase.
         """
+        init() # Se inicializa el modulo de Colorama.
         self.__tiempoActual = ""
     
     def gettiempoActual(self):
@@ -114,7 +115,7 @@ class Impresor:
         self.settiempoActual((datetime.today() - timedelta(hours = 0)).strftime('%Y-%m-%d %H:%M:%S'))
         mensaje = Back.LIGHTRED_EX + Fore.LIGHTRED_EX + "============================================================================================================================\n" + Back.RESET + Fore.RESET
         mensaje += Fore.RED + f"| [{titulo}] - [{self.gettiempoActual()}] | \n" + Fore.RESET
-        mensaje += Fore.BLACK + f"| {error} | \n" + Fore.RESET
+        mensaje += Fore.WHITE + f"| {error} | \n" + Fore.RESET
         mensaje += Back.LIGHTRED_EX + Fore.LIGHTRED_EX + "============================================================================================================================\n" + Back.RESET + Fore.RESET
         print(mensaje)
     
@@ -134,7 +135,7 @@ class Impresor:
         self.settiempoActual((datetime.today() - timedelta(hours = 0)).strftime('%Y-%m-%d %H:%M:%S'))
         mensaje = f"{Back.LIGHTBLUE_EX}{Fore.LIGHTBLUE_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
         mensaje += f"{Fore.BLUE}| [{titulo}] - [{self.gettiempoActual()}] | { Fore.RESET}\n"
-        mensaje += f"{Fore.BLACK}| {data} | {Fore.RESET}\n"
+        mensaje += f"{Fore.WHITE}| {data} | {Fore.RESET}\n"
         mensaje += f"{Back.LIGHTBLUE_EX}{Fore.LIGHTBLUE_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
         print(mensaje)
     
@@ -153,7 +154,7 @@ class Impresor:
         self.settiempoActual((datetime.today() - timedelta(hours = 0)).strftime('%Y-%m-%d %H:%M:%S'))
         mensaje = f"{Back.LIGHTYELLOW_EX}{Fore.LIGHTYELLOW_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
         mensaje += f"{Fore.YELLOW}| [{titulo}] - [{self.gettiempoActual()}] | { Fore.RESET}\n"
-        mensaje += f"{Fore.BLACK}| {data} | {Fore.RESET}\n"
+        mensaje += f"{Fore.WHITE}| {data} | {Fore.RESET}\n"
         mensaje += f"{Back.LIGHTYELLOW_EX}{Fore.LIGHTYELLOW_EX}============================================================================================================================\n{Back.RESET}{Fore.RESET}"
         print(mensaje)
     # Endregion - Metodos en la clase  
