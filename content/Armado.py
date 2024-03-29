@@ -8,7 +8,7 @@ from os import  path, getcwd, system
 from datetime import datetime, timedelta
 
 from controller.Log import Log
-from content.NuevaEPS import NuevaEPS
+from content.ManejoArchivos import ManejoArchivos
 from controller.Impresor import Impresor
 from content.Peticiones import Peticiones
 from controller.utils.Configurations import Configurations
@@ -20,10 +20,10 @@ from controller.utils.Configurations import Configurations
 
 # Region - Instancia de clases de archivos importado
 logger = Log()
-neps = NuevaEPS()
 peti = Peticiones()
 consola = Impresor()
 config= Configurations()
+archivos = ManejoArchivos()
 
 directorioProyecto = getcwd()
 # Endregion - Instancia de clases de archivos importado
@@ -64,6 +64,7 @@ class Armado:
         self.rutaSopsDescargados = config.getConfigValue("variables", "pathSoportesDescargados")
         self.rutaFacturasDescarg = config.getConfigValue("variables", "pathCarpetaFacturas")
 
+        self.__procesoAnterior = config.getConfigValue("variables", "procesarPeticionAnterior")
         self.__entornoDesarrollo = config.getConfigValue("enviroment", "entornoProceso")
         if(self.__entornoDesarrollo != "dev"):
             rutasFacturasOriginal = self.rutaFacturasDescarg
@@ -71,9 +72,6 @@ class Armado:
             self.__fechaDiaAnterior = (datetime.today() - timedelta(days=1)).strftime('%d-%m-%Y')
             self.rutaFacturasDescarg = path.join(self.rutaFacturasDescarg, f"facturas-{self.__fechaEjecucion}", "Nueva EPS")
             self.rutaFacturasDiaAnte = path.join(rutasFacturasOriginal, f"facturas-{self.__fechaDiaAnterior}", "Nueva EPS")
-
-        consola.imprimirComentario("Fecha Carpeta Facturas", f"La ruta quedo así: {self.rutaFacturasDescarg}")
-        consola.imprimirComentario("Fecha Facturas Anterior", f"La ruta de facturas del día anterior es: {self.rutaFacturasDiaAnte}")
         # Variables para almacenar el contenido de los JSON
         self.dataSoportesJSON = ""
         self.dataNomenclaJSON = ""
@@ -142,15 +140,41 @@ class Armado:
             consola.imprimirError(f"Error al escribir los datos anteriores de la petición, error: {e}")
             logger.registrarLogEror(f"No se ha podido escribir los datos del JSON para peticiones anteriores.", "escribirDatosAnterioresJSON")
 
+    def leerDatosAnterioresJSON(self):
+        """
+        En caso de ser necesario, se podrá realizar el armado
+        con base a los datos obtenidos del último proceso de armado
+        de consulta a la API, pues estos datos se guardan en un JSON.
+        Este metodo se encarga de leer dicho JSON y hacer su proceso
+        de armado de cuentas en relación a los datos de allí.
+        """
+        datos = []
+        try:
+            consola.imprimirInfoColor("Lectura de petición anterior", "El proceso de armado, se hará mediante la lectura de los datos del JSON anteriormente seteado.")
+            if(path.isfile(path.join(directorioProyecto, self.rutaAntiguaPeticionJSON))):
+                with open(path.join(directorioProyecto, self.rutaAntiguaPeticionJSON),'r') as arch:
+                    datos = load(arch)
+                    arch.close()
+                consola.imprimirInfoColor("Lectura de petición anterior", f" La lectura del JSON anterior ha sido correcta, con: ({len(datos)}) datos.")
+        except Exception as e:
+            consola.imprimirErrorColor("Fallo en lectura de JSON anterior", f"No se pudo leer y procesar la petición de lectura del JSON anterior, error: {e}")
+            logger.registrarLogEror(f"No se ha podido leer los datos del JSON para peticiones anteriores, {e}", "leetDatosAnterioresJSON")
+        finally:
+            return datos
+
     def orquestarArmado(self):
         """
         Este metodo orquesta el renombre,
         y armado de las carpetas según disposición.
         """
+        consola.imprimirComentario("Rutas de carpetas para la Factura", f"La ruta uno es: ({self.rutaFacturasDescarg}), la ruta dos es: ({self.rutaFacturasDiaAnte})")
         leerJsonComplementarios = self.lecturaJSON() # Lectura de JSON complementarios para configuración
         if(leerJsonComplementarios):
-            neps.dataNomenclatura = self.dataNomenclaJSON["renombreZentriaNEPS"] # Asignación de atributo de renombre de Zentria
-            datos = peti.obtenerListadoFacturas() # Se obtienen los datos de las cuentas a renombrar
+            archivos.dataNomenclatura = self.dataNomenclaJSON["renombreZentriaNEPS"] # Asignación de atributo de renombre de Zentria
+            if(self.__procesoAnterior == "no"):
+                datos = peti.obtenerListadoFacturas() # Se obtienen los datos de las cuentas a renombrar
+            else:
+                datos = self.leerDatosAnterioresJSON()
             self.__cuentasArmar = datos # Listado con datos de cuentas armar.
             if(len(datos) > 0):
                 self.escribirDatosAnterioresJSON(datos)
@@ -163,19 +187,19 @@ class Armado:
                 if(len(self.__cuentasArmar) > 0): # Armado de cuentas.
                     for cuenta in self.__cuentasArmar:
                         rutaSoportesFactura = path.join(self.rutaSopsDescargados, cuenta["numero_factura"])
-                        neps.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
-                        neps.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
-                        neps.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
-                        neps.copiadoFactura(self.rutaFacturasDescarg, self.rutaFacturasDiaAnte, cuenta["numero_factura"], "NEPS") # Copiado de factura
-                        neps.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
-                        neps.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
+                        archivos.copiadoSop(rutaSoportesFactura, cuenta["numero_factura"], "NEPS") # Copiado de soportes
+                        archivos.tratadoArchivosCargueSoportes("NEPS", cuenta["numero_factura"]) # Tratado de archivos en carpeta Cargue Archivos
+                        archivos.renombrarArchivos("NEPS", cuenta["numero_factura"]) # Renombre de archivos
+                        archivos.copiadoFactura(self.rutaFacturasDescarg, self.rutaFacturasDiaAnte, cuenta["numero_factura"], "NEPS") # Copiado de factura
+                        archivos.moverSegunRegimen("NEPS", cuenta["regimen"], cuenta["numero_factura"]) # Se mueve la cuenta de la carpeta de armados, a la del regimen
+                        archivos.renombrarPDEconOTRO("NEPS", cuenta["regimen"], cuenta["numero_factura"], "PDE", "OTR") # ! Se renombra un archivo en especifico Es temporal
                         peticion = peti.actualizarEstadoCuenta(cuenta["id_pdf"], "armado_cuentas") # Actualización de estado.
                         if peticion["status"] == False:
                             self.__cuentasSinActualizar.append(peticion["idFactura"]) 
                     if(len(self.__cuentasSinActualizar) > 0): # Reintento de actualización de estado de cuentas
                         for cuenta in self.__cuentasSinActualizar:
                             peticion = peti.actualizarEstadoCuenta(cuenta["idFactura"], "armado_cuentas") # Actualización de estado.
-                    neps.controlFinal()
+                    archivos.controlFinal()
                 else:
                     logger.registrarLogEror(f"La API ha retornado datos, pero no ha encontrado carpetas para armar.", "orquestarArmado")
             else:
