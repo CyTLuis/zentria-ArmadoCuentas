@@ -248,14 +248,16 @@ class ManejoArchivos:
             if(path.isdir(rutaCarpetaPacienteCargue)):
                 consola.imprimirInfoColor(f"Tratado Cargue de Archivos - Cuenta: {cuenta}", f"Se iniciará el tratado de los archivos de la carpeta Cargue de Archivos.")
                 archivosCargados = listdir(rutaCarpetaPacienteCargue)
-                listadoPDE = [], listadoTAP = [], listadoPDX = []
+                listadoPDE = []
+                listadoTAP = []
+                listadoPDX = []
                 for cargue in archivosCargados:
                     rutaSoporteCargue = path.join(rutaCarpetaPacienteCargue, cargue)
                     if any(subcadena in cargue for subcadena in ["AUTO", "SOPORTES CIRUGIA", "DOCUMENTO DE I", "DE DERECHOS", "PDX", "PDXCA", "COTIZACIONES", "VIRAL"]):
                         listadoPDE.append(rutaSoporteCargue)
                     if any(subcadena in cargue for subcadena in ["TRASLADO"]):
                         listadoTAP.append(rutaSoporteCargue)
-                    if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS", "CARDIO"]):
+                    if any(subcadena in cargue for subcadena in ["ELECTRO", "AYUDAS", "CARDIO", "LABO"]):
                         listadoPDX.append(rutaSoporteCargue)
                     
                 if(len(listadoPDE) > 0):
@@ -296,15 +298,17 @@ class ManejoArchivos:
         try:
             merger = PdfWriter() # Se instancia el escritor de PDF
             for pdf in listadoSoportesUnir:
-                try:
-                    with open(pdf, 'rb') as file: # Se intenta leer el archivo
-                        reader = PdfReader(file) # Se lee el archivo PDF
-                        _ = reader.numPages # Si el archivo es leído, no es corrupto, y podrá ser procesado.
-                    merger.append(pdf) # Se agrega cada full path al merger.
-                    remove(pdf) # Se elimina el PDF de la ruta
-                except Exception as e:
-                    consola.imprimirWarnColor("Archivo PDF corrupto", f"El archivo en la ruta: {pdf}, está corrupto, y no será procesado para el archivo: {soporte}")
-                    next # Si el archivo es corrupto, se mostrará en consola, y se pasará al siguiente archivo.
+                merger.append(pdf) # Se agrega cada full path al merger.
+                remove(pdf) # Se elimina el PDF de la ruta
+                # try:
+                #     with open(pdf, 'rb') as file: # Se intenta leer el archivo
+                #         reader = PdfReader(file) # Se lee el archivo PDF
+                #         _ = reader.numPages # Si el archivo es leído, no es corrupto, y podrá ser procesado.
+                #     merger.append(pdf) # Se agrega cada full path al merger.
+                #     remove(pdf) # Se elimina el PDF de la ruta
+                # except Exception as e:
+                #     consola.imprimirWarnColor("Archivo PDF corrupto", f"El archivo en la ruta: {pdf}, está corrupto, y no será procesado para el archivo: {soporte}")
+                #     next # Si el archivo es corrupto, se mostrará en consola, y se pasará al siguiente archivo.
             merger.write(f"{rutaCarpetaGuardar}\\{soporte}.pdf") # Se unen todos los PDF en uno
             merger.close() # Se cierra la instancia del escritor.
         except Exception as e:
